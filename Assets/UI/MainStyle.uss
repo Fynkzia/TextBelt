@@ -1,0 +1,143 @@
+.panel {
+    background-image: url('project://database/Assets/Sprites/Background.jpg?fileID=21300000&guid=dec2d39014c69824dac935c26098af63&type=3#Background');
+}
+
+.progressBar__background {
+    overflow: hidden;
+}
+
+.fruitbox {
+    padding-top: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+    padding-left: 0;
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+}
+
+.fruit {
+    flex-grow: 1;
+    background-image: url('project://database/Assets/Sprites/Fruits/AppleIcon.png?fileID=21300000&guid=0e6fbd1e14ba87a42a56fecc42a4107f&type=3#AppleIcon');
+    width: 50px;
+    height: 50px;
+    padding-top: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+    padding-left: 0;
+    margin-top: -10px;
+    margin-right: -10px;
+    margin-bottom: -10px;
+    margin-left: -10px;
+}
+
+.textbelt {
+    flex-grow: 0;
+    height: 20px;
+    background-color: rgb(174, 203, 255);
+    flex-shrink: 1;
+}
+
+.actualText {
+    transition-duration: 3s;
+    -unity-font: url('project://database/Assets/UnityDefaultRuntimeTheme.tss?fileID=2230732570650464555&guid=0cfc4babcf1fda249beefd08f9dfb6eb&type=3#NotInter-Regular');
+    font-size: 25px;
+    right: auto;
+    left: 100%;
+    -unity-text-align: upper-left;
+    transition-timing-function: linear;
+    translate: 0 0;
+}
+
+.actualText_endPos {
+    translate: 0 0;
+    left: 0;
+}
+
+.answerBtn {
+    margin-top: 0;
+    margin-right: 30px;
+    margin-bottom: 30px;
+    margin-left: 30px;
+    width: 100px;
+}
+
+.answerBox {
+    align-self: center;
+    width: auto;
+    height: 200px;
+    align-items: center;
+    justify-content: flex-start;
+    max-width: 300px;
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-right: auto;
+    margin-left: auto;
+    flex-wrap: wrap;
+    flex-direction: row;
+}
+
+.textbelt__open {
+    flex-grow: 0;
+    height: 100px;
+    background-color: rgb(174, 203, 255);
+    flex-shrink: 1;
+}
+
+.progressBar_value {
+    flex-grow: 1;
+    background-color: rgb(0, 255, 45);
+    width: 0;
+    height: 100%;
+    border-bottom-left-radius: 10px;
+    border-top-left-radius: 10px;
+    transition-duration: 2s;
+}
+
+.playButton {
+    width: 55px;
+    height: 55px;
+    margin-bottom: 10px;
+    margin-left: 20px;
+    background-image: url('project://database/Assets/Sprites/4028535.png?fileID=21300000&guid=5f2f122955a45b64685e78d209e5ac00&type=3#4028535');
+    border-left-color: rgba(255, 255, 255, 0);
+    border-right-color: rgba(255, 255, 255, 0);
+    border-top-color: rgba(255, 255, 255, 0);
+    border-bottom-color: rgba(255, 255, 255, 0);
+    background-color: rgba(255, 255, 255, 0);
+    -unity-background-image-tint-color: rgb(255, 255, 255);
+    padding-bottom: 0;
+}
+
+.playButton:active {
+    -unity-background-image-tint-color: rgb(156, 156, 156);
+}
+
+.playButton_anim {
+    scale: 1.2 1.2;
+}
+
+.question {
+    flex-grow: 1;
+    width: 300px;
+    align-self: center;
+    justify-content: center;
+    align-items: center;
+    font-size: 30px;
+    display: none;
+    transition-duration: 0.25s;
+    background-color: rgba(231, 191, 86, 0.87);
+    margin-top: 20px;
+    margin-right: 20px;
+    margin-bottom: 20px;
+    margin-left: 20px;
+    visibility: visible;
+    height: 80px;
+    max-height: 80px;
+    -unity-text-align: upper-center;
+}
+
+.question_small {
+    scale: 0.2 0.2;
+}
