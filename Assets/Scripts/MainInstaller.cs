@@ -6,6 +6,6 @@ public class MainInstaller : MonoInstaller
     [SerializeField] private DataService dataService;
     public override void InstallBindings()
     {
-        Container.Bind<DataService>().FromInstance(dataService).AsTransient();
+        Container.Bind<DataService>().FromInstance(dataService).AsSingle();
     }
 }
