@@ -1,51 +1,57 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using UniRx;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Zenject;
+using Cysharp.Threading.Tasks;
 
-public class TextMovementPhase : GamePhase
+public class TextMovementPhase : IGamePhase
 {
-    private GamePhaseMachine _phaseMachine;
+    //[Inject] 
+    private UIController _uiController;
     private EventRegistry m_EventRegistry = new EventRegistry();
-    public TextMovementPhase(GamePhaseMachine phaseMachine) : base("TextMovementPhase", phaseMachine) {
-        _phaseMachine = phaseMachine;
-    }
 
-    public override void Enter() {
-        _phaseMachine.playButton.RegisterCallback<ClickEvent>(MainButtonClick);
+    public bool phaseFinished;
+    public TextMovementPhase(UIController uiController) {
+        _uiController = uiController;
+    }
+    public void Enter() {
+        phaseFinished = false;
         m_EventRegistry.Dispose();
-        _phaseMachine.overlay.style.overflow = Overflow.Visible;
-        _phaseMachine.textBelt.AddToClassList("textbelt__open");
-        m_EventRegistry.RegisterCallback<TransitionEndEvent>(_phaseMachine.textBelt, MoveText);
+        _uiController.ShowTextBelt();
+        m_EventRegistry.RegisterCallback<TransitionEndEvent>(_uiController.textBelt, MoveText);
+
     }
 
     private void MoveText(TransitionEndEvent evt) {
         m_EventRegistry.Dispose();
-        _phaseMachine.actualText.style.transitionDuration = new List<TimeValue> { new(_phaseMachine.duration, TimeUnit.Second) };
-        _phaseMachine.actualText.AddToClassList("actualText_endPos");
-        m_EventRegistry.RegisterCallback<TransitionEndEvent>(_phaseMachine.actualText, 
-            evt => ChangePhaseAfterTransition(_phaseMachine.questionPhase)
+        _uiController.MoveText();
+        m_EventRegistry.RegisterCallback<TransitionEndEvent>(_uiController.actualText, 
+            evt => Exit()
         );
     }
-    private void MainButtonClick(ClickEvent e) {
-        ChangePhaseAfterTransition(_phaseMachine.textMovementPhase);
+
+     private void CloseTransition() {
+        m_EventRegistry.Dispose();
+        _uiController.CloseTextBelt();
+
+        m_EventRegistry.RegisterCallback<TransitionEndEvent>(_uiController.textBelt,
+            evt => phaseFinished = true
+        );
     }
 
-    private void ChangePhaseAfterTransition(GamePhase phase) {
+    public void Exit() {
         m_EventRegistry.Dispose();
-        _phaseMachine.actualText.style.transitionDuration = new List<TimeValue>() { new TimeValue(1, TimeUnit.Second) };
-        _phaseMachine.textBelt.RemoveFromClassList("textbelt__open");
-        _phaseMachine.actualText.RemoveFromClassList("actualText_endPos");
-        _phaseMachine.overlay.style.overflow = Overflow.Hidden;
-        _phaseMachine.playButton.UnregisterCallback<ClickEvent>(MainButtonClick);
+        CloseTransition();
+        EndExitTransition();
+    }
 
-        m_EventRegistry.RegisterCallback<TransitionEndEvent>(_phaseMachine.textBelt,
-            evt => _phaseMachine.ChangePhase(phase)
-        );
-    } 
-
-    public override void Exit() {
-        m_EventRegistry.Dispose();
+    public IGamePhase GetNextPhase() {
+        return new QuestionPhase(_uiController);
+    }
+    private async UniTask EndExitTransition() {
+        await UniTask.WaitUntil(() => phaseFinished == true);
+        Debug.Log("Task finished");
     }
 }

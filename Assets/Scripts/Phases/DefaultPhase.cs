@@ -2,24 +2,24 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Zenject;
 
-public class DefaultPhase : GamePhase
+public class DefaultPhase : IGamePhase
 {
-    private GamePhaseMachine _phaseMachine;
-    public DefaultPhase(GamePhaseMachine phaseMachine) : base("DefaultPhase", phaseMachine) {
-        _phaseMachine = phaseMachine;
+    //[Inject] 
+    private UIController _uiController;
+    public DefaultPhase(UIController uiController) { 
+        _uiController = uiController;
+    }
+    public void Enter() {
+        Debug.Log("call");
+        _uiController.animations.enabled = true;
+    }
+    public void Exit() {
+        _uiController.animations.enabled = false;
     }
 
-    public override void Enter() {
-        _phaseMachine.animations.enabled = true;
-        _phaseMachine.playButton.RegisterCallback<ClickEvent>(MainButtonClick);
-    }
-
-    private void MainButtonClick(ClickEvent e) {
-        _phaseMachine.ChangePhase(_phaseMachine.textMovementPhase);
-    }
-    public override void Exit() {
-        _phaseMachine.animations.enabled = false;
-        _phaseMachine.playButton.UnregisterCallback<ClickEvent>(MainButtonClick);
+    public IGamePhase GetNextPhase() {
+        return new TextMovementPhase(_uiController);
     }
 }
