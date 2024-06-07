@@ -17,19 +17,19 @@ public class UIController : MonoBehaviour
     [HideInInspector] public Progress progress;
     [HideInInspector] public Animations animations;
 
-    //[Inject]
-    //private GameManager gameManager;
+    [Inject] private GameManager gameManager;
+    [Inject] private DataService dataService;
+    private int _duration;
+    private EventRegistry m_EventRegistry = new EventRegistry();
     private void OnEnable() {
         GetAllComponents();
         animations = GetComponent<Animations>();
         progress = GetComponent<Progress>();
        
     }
-
     private void Start() {
-        playButton.RegisterCallback<ClickEvent>(e => GameManager.instance.MainButtonClick());
+        playButton.RegisterCallback<ClickEvent>(e => gameManager.MainButtonClick());
     }
-
     private void GetAllComponents() {
         var root = GetComponent<UIDocument>().rootVisualElement;
         playButton = root.Q<Button>("PlayButton");
@@ -42,14 +42,47 @@ public class UIController : MonoBehaviour
         questionLabel = root.Q<Label>("QuestionLabel");
         answerBox = root.Q<GroupBox>("AnswerBox");
     }
+    public void InitCurrentStepText() {
+        int currentStepIndex = gameManager._currentStepIndex;
+        _duration = dataService.GetCurrentStepText(currentStepIndex).Length / gameManager.textSpeed;
+        actualText.text = dataService.GetCurrentStepText(currentStepIndex);
+    }
 
+    public void InitAnswerButtons() {
+        List<TextBlockData.Answer> answers = dataService.GetAnswers(gameManager._currentStepIndex, gameManager._currentQuestionIndex);
+        for (int i = 0; i < answers.Count; i++) {
+            var answerBtn = new Button();
+            answerBtn.AddToClassList("answerBtn");
+            answerBtn.text = answers[i].text;
+            answerBox.Add(answerBtn);
+            if (answers[i].isRight) {
+                m_EventRegistry.RegisterCallback<ClickEvent>(answerBtn, ClickAnswerRight);
+            }
+            else {
+                m_EventRegistry.RegisterCallback<ClickEvent>(answerBtn, ClickAnswerWrong);
+            }
+        }
+    }
+    public void ClickAnswerRight(ClickEvent e) {
+        Button btn = e.currentTarget as Button;
+        btn.style.backgroundColor = Color.green;
+        Debug.Log("right");
+        progress.MoveCaterpillar();
+        //Next();//event for gm??
+    }
+    public void ClickAnswerWrong(ClickEvent e) {
+        Button btn = e.currentTarget as Button;
+        btn.style.backgroundColor = Color.red;
+        Debug.Log("wrong");
+        progress.DeleteFruit();//event for gm??
+    }
     public void ShowTextBelt() {
         overlay.style.overflow = Overflow.Visible;
         textBelt.AddToClassList("textbelt__open");
     }
 
     public void MoveText() {
-        actualText.style.transitionDuration = new List<TimeValue> { new(GameManager.instance.duration, TimeUnit.Second) };
+        actualText.style.transitionDuration = new List<TimeValue> { new(_duration, TimeUnit.Second) };
         actualText.AddToClassList("actualText_endPos");
     }
 
@@ -59,12 +92,13 @@ public class UIController : MonoBehaviour
         actualText.RemoveFromClassList("actualText_endPos");
         overlay.style.overflow = Overflow.Hidden;
     }
-    public void InitQuestionText() { 
-    
+    public void InitQuestionText() {
+        questionLabel.text = dataService.GetCurrentQuestionText(gameManager._currentStepIndex,gameManager._currentQuestionIndex);
     }
 
     public void InitAnswerBox() {
-
+        answerBox.Clear();
+        InitAnswerButtons();
     }
     public void ShowQuestionBox() {
         question.style.display = DisplayStyle.Flex;
@@ -76,14 +110,16 @@ public class UIController : MonoBehaviour
     public void CloseQuestionBox() {
         question.AddToClassList("question_small");
         answerBox.AddToClassList("question_small");
-        /*m_EventRegistry.RegisterCallback<TransitionEndEvent>
-        (question, evt => {
-            question.style.display = DisplayStyle.None;
-            answerBox.style.display = DisplayStyle.None;
-        });*/
+        question.RegisterCallback<TransitionEndEvent>(HideQuestionBox);
+    }
+
+    private void HideQuestionBox(TransitionEndEvent evt) {
+        question.style.display = DisplayStyle.None;
+        answerBox.style.display = DisplayStyle.None;
+        question.UnregisterCallback<TransitionEndEvent>(HideQuestionBox);
     }
 
     private void OnDestroy() {
-        playButton.UnregisterCallback<ClickEvent>(e => GameManager.instance.MainButtonClick());
+        playButton.UnregisterCallback<ClickEvent>(e => gameManager.MainButtonClick());
     }
 }

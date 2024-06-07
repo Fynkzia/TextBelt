@@ -6,13 +6,16 @@ using Zenject;
 
 public class DefaultPhase : IGamePhase
 {
-    //[Inject] 
     private UIController _uiController;
-    public DefaultPhase(UIController uiController) { 
+    private PhaseMachine _phaseMachine;
+    private EventRegistry _eventRegistry;
+
+    public DefaultPhase(UIController uiController, PhaseMachine phaseMachine, EventRegistry eventRegistry) { 
         _uiController = uiController;
+        _phaseMachine = phaseMachine;  
+        _eventRegistry = eventRegistry;
     }
     public void Enter() {
-        Debug.Log("call");
         _uiController.animations.enabled = true;
     }
     public void Exit() {
@@ -20,6 +23,6 @@ public class DefaultPhase : IGamePhase
     }
 
     public IGamePhase GetNextPhase() {
-        return new TextMovementPhase(_uiController);
+        return _phaseMachine.GetPhase<TextMovementPhase>();
     }
 }

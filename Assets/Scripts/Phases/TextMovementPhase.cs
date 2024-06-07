@@ -8,50 +8,32 @@ using Cysharp.Threading.Tasks;
 
 public class TextMovementPhase : IGamePhase
 {
-    //[Inject] 
     private UIController _uiController;
-    private EventRegistry m_EventRegistry = new EventRegistry();
+    private PhaseMachine _phaseMachine;
+    private EventRegistry _eventRegistry;
+    private ShowTextAction _showTextAction;
 
-    public bool phaseFinished;
-    public TextMovementPhase(UIController uiController) {
+    public TextMovementPhase(UIController uiController, PhaseMachine phaseMachine, EventRegistry eventRegistry, ShowTextAction showTextAction) {
         _uiController = uiController;
+        _phaseMachine = phaseMachine;
+        _eventRegistry = eventRegistry;
+        _showTextAction = showTextAction;
     }
+
     public void Enter() {
-        phaseFinished = false;
-        m_EventRegistry.Dispose();
-        _uiController.ShowTextBelt();
-        m_EventRegistry.RegisterCallback<TransitionEndEvent>(_uiController.textBelt, MoveText);
-
-    }
-
-    private void MoveText(TransitionEndEvent evt) {
-        m_EventRegistry.Dispose();
-        _uiController.MoveText();
-        m_EventRegistry.RegisterCallback<TransitionEndEvent>(_uiController.actualText, 
-            evt => Exit()
-        );
-    }
-
-     private void CloseTransition() {
-        m_EventRegistry.Dispose();
-        _uiController.CloseTextBelt();
-
-        m_EventRegistry.RegisterCallback<TransitionEndEvent>(_uiController.textBelt,
-            evt => phaseFinished = true
-        );
+        _uiController.InitCurrentStepText();
+        _showTextAction.Show(_uiController);
+        _showTextAction.SubscribeOnFinished = () => {
+            _phaseMachine.MoveToNextState();
+            _showTextAction.UnsubscribeAll();
+        };
     }
 
     public void Exit() {
-        m_EventRegistry.Dispose();
-        CloseTransition();
-        EndExitTransition();
     }
 
     public IGamePhase GetNextPhase() {
-        return new QuestionPhase(_uiController);
+        return _phaseMachine.GetPhase<QuestionPhase>();
     }
-    private async UniTask EndExitTransition() {
-        await UniTask.WaitUntil(() => phaseFinished == true);
-        Debug.Log("Task finished");
-    }
+
 }

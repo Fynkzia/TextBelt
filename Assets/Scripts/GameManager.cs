@@ -1,103 +1,79 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using UnityEngine;
-using UnityEngine.UIElements;
 using Zenject;
 
 public class GameManager : MonoBehaviour
 {
-    [SerializeField] private int textSpeed;
+    public int textSpeed;
 
-    [HideInInspector] public DefaultPhase defaultPhase;
+/*    [HideInInspector] public DefaultPhase defaultPhase;
     [HideInInspector] public TextMovementPhase textMovementPhase;
-    [HideInInspector] public QuestionPhase questionPhase;
+    [HideInInspector] public QuestionPhase questionPhase;*/
 
     [Inject] private DataService dataService;
-    [Inject] private UIController uiController;
+    [Inject] private DiContainer _container;
+    [Inject] private PhaseMachine _phaseMachine;
 
-    [HideInInspector] public int duration;
-    private EventRegistry m_EventRegistry = new EventRegistry();
+    /*[Inject] private DefaultPhase _defaultPhase;
+    [Inject] private TextMovementPhase _movementPhase;
+    [Inject] private QuestionPhase _questionPhase;*/
 
-    private int _currentStepIndex;
-    private int _currentQuestionIndex;
+    [Inject]private EventRegistry _EventRegistry;
 
-    private PhaseMachine phaseMachine;
-    public static GameManager instance;
+    public int _currentStepIndex { get; private set; }
+    public int _currentQuestionIndex { get; private set; }
+
+    //private PhaseMachine phaseMachine;
 
     private void OnEnable() {
-       
         _currentStepIndex = 0;
-        _currentQuestionIndex = 0;
-        InitDataText();
-        //InitDataQuestion();        
+        _currentQuestionIndex = 0;     
     }
 
     private void Start() {
-        if (instance == null) { 
-            instance = this; 
-        }
         PhaseMachineInit();
-        phaseMachine.ChangeState(defaultPhase);
+        //phaseMachine.ChangeState(defaultPhase);
         
     }
 
     private void PhaseMachineInit() {
-        defaultPhase = new DefaultPhase(uiController);
-        textMovementPhase = new TextMovementPhase(uiController);
-        questionPhase = new QuestionPhase(uiController);
-        phaseMachine = new PhaseMachine();
+        var uiController = _container.Resolve<UIController>();
+        var eventRegistry = _container.Resolve<EventRegistry>();
+        var showTextAction = _container.Resolve<ShowTextAction>();
+
+        var defaultPhase = new DefaultPhase(uiController, _phaseMachine, eventRegistry);
+        var textMovementPhase = new TextMovementPhase(uiController, _phaseMachine, eventRegistry, showTextAction);
+        var questionPhase = new QuestionPhase(uiController, _phaseMachine, eventRegistry);
+        _phaseMachine.AddPhase<DefaultPhase>(defaultPhase);
+        _phaseMachine.AddPhase<TextMovementPhase>(textMovementPhase);
+        _phaseMachine.AddPhase<QuestionPhase>(questionPhase);
+
+        _phaseMachine.ChangeState(_phaseMachine.GetPhase<DefaultPhase>());
     }
 
     public void MainButtonClick() {
-        phaseMachine.ChangeState(textMovementPhase);
-    }
-
-    private void InitDataText() {
-        duration = GetDuration();
-        //actualText.text = dataService.GetCurrentStepText(_currentStepIndex);
-    }
-
-    private void InitDataQuestion() {
-        //questionLabel.text = dataService.GetCurrentQuestionText(_currentStepIndex,_currentQuestionIndex);
-        InitAnswerButtons(dataService.GetAnswers(_currentStepIndex, _currentQuestionIndex));
-    }
-    public int GetDuration() {
-        return dataService.GetCurrentStepText(_currentStepIndex).Length / textSpeed;
-    }
-
-    private void InitAnswerButtons(List<TextBlockData.Answer> answers) {
-        for (int i = 0; i < answers.Count; i++) {
-            var answerBtn = new Button();
-            answerBtn.AddToClassList("answerBtn");
-            answerBtn.text = answers[i].text;
-            //answerBox.Add(answerBtn);
-            if (answers[i].isRight) {
-                m_EventRegistry.RegisterCallback<ClickEvent>(answerBtn, questionPhase.ClickAnswerRight);
-            }
-            else {
-                m_EventRegistry.RegisterCallback<ClickEvent>(answerBtn, questionPhase.ClickAnswerWrong);
-            }
+        if (_phaseMachine.currentPhase != _phaseMachine.GetPhase<TextMovementPhase>()) { 
+            _phaseMachine.ChangeState(_phaseMachine.GetPhase<TextMovementPhase>());
         }
     }
 
+    
+
     private void OnEnd() {
         //answerBox.Clear();
-        m_EventRegistry.Dispose();
+        //_eventRegistry.Dispose();
     }
 
     public void RestartNewText() {
         _currentStepIndex++;
         _currentQuestionIndex = 0;
         OnEnd();
-        InitDataText();
-        InitDataQuestion();
     }
 
     public void RestartNewQuestion() {
         _currentQuestionIndex++;
         OnEnd();
-        InitDataQuestion();
     }
 
     public bool IsNextQuestion() {

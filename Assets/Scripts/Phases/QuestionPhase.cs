@@ -7,12 +7,13 @@ using Zenject;
 
 public class QuestionPhase : IGamePhase
 {
-    //[Inject]
     private UIController _uiController;
-    private EventRegistry m_EventRegistry = new EventRegistry();
-
-    public QuestionPhase(UIController uiController) {
+    private PhaseMachine _phaseMachine;
+    private EventRegistry _eventRegistry;
+    public QuestionPhase(UIController uiController, PhaseMachine phaseMachine, EventRegistry eventRegistry) {
         _uiController = uiController;
+        _phaseMachine = phaseMachine;
+        _eventRegistry = eventRegistry;
     }
     public void Enter() {
         _uiController.InitQuestionText();
@@ -21,27 +22,12 @@ public class QuestionPhase : IGamePhase
         
     }
 
-    private void ChangePhaseAfterTransition(IGamePhase phase) {
-        
-    }
     public void Exit() {
-        
-        m_EventRegistry.Dispose();
+        _uiController.CloseQuestionBox();
+        //_eventRegistry.Dispose();
     }
 
-    public void ClickAnswerRight(ClickEvent e) {
-        Button btn = e.currentTarget as Button;
-        btn.style.backgroundColor = Color.green;
-        Debug.Log("right");
-        //_phaseMachine.progress.MoveCaterpillar();
-        //Next();
-    }
-    public void ClickAnswerWrong(ClickEvent e) {
-        Button btn = e.currentTarget as Button;
-        btn.style.backgroundColor = Color.red;
-        Debug.Log("wrong");
-        //_phaseMachine.progress.DeleteFruit();
-    }
+
 
     public IGamePhase GetNextPhase() {
         /*if (_phaseMachine.IsNextQuestion()) {
@@ -57,6 +43,6 @@ public class QuestionPhase : IGamePhase
             Debug.Log("End Of Data");
         }*/
 
-        return new QuestionPhase(_uiController);
+        return _phaseMachine.GetPhase<QuestionPhase>();
     }
 }
