@@ -11,7 +11,7 @@
                 <ui:VisualElement name="Fruit" class="fruit" />
             </ui:GroupBox>
         </ui:VisualElement>
-        <ui:VisualElement name="TextBelt" class="textbelt" style="transition-duration: 1s; justify-content: center;">
+        <ui:VisualElement name="TextBelt" class="textbelt" style="transition-duration: 1s; justify-content: center; transition-delay: 0.1s;">
             <ui:VisualElement name="Overlay" style="flex-grow: 1;">
                 <ui:Label tabindex="-1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="ActualText" text="hiiiyyyyyyyyyyyyyyyyyy" class="actualText" style="-unity-font: url(&apos;project://database/Assets/TextMesh%20Pro/Fonts/LiberationSans.ttf?fileID=12800000&amp;guid=e3265ab4bf004d28a9537516768c1c75&amp;type=3#LiberationSans&apos;);" />
             </ui:VisualElement>

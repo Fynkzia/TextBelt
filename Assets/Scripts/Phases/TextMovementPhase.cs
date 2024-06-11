@@ -1,28 +1,21 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UIElements;
-using Zenject;
-using Cysharp.Threading.Tasks;
 
 public class TextMovementPhase : IGamePhase
 {
     private UIController _uiController;
     private PhaseMachine _phaseMachine;
-    private EventRegistry _eventRegistry;
     private ShowTextAction _showTextAction;
+    public Action OnFinished { get; set; }
 
-    public TextMovementPhase(UIController uiController, PhaseMachine phaseMachine, EventRegistry eventRegistry, ShowTextAction showTextAction) {
+    public TextMovementPhase(UIController uiController, PhaseMachine phaseMachine, ShowTextAction showTextAction) {
         _uiController = uiController;
         _phaseMachine = phaseMachine;
-        _eventRegistry = eventRegistry;
         _showTextAction = showTextAction;
     }
 
     public void Enter() {
         _uiController.InitCurrentStepText();
-        _showTextAction.Show(_uiController);
+        _showTextAction.Show();
         _showTextAction.SubscribeOnFinished = () => {
             _phaseMachine.MoveToNextState();
             _showTextAction.UnsubscribeAll();
@@ -30,6 +23,7 @@ public class TextMovementPhase : IGamePhase
     }
 
     public void Exit() {
+        OnFinished?.Invoke();
     }
 
     public IGamePhase GetNextPhase() {

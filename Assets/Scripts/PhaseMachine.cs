@@ -1,21 +1,26 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using Zenject.SpaceFighter;
 
 public class PhaseMachine
 {
     public IGamePhase currentPhase { get; private set; }
-    //LinkedListNode<IGamePhase> currentPhase;
     private Dictionary<Type,IGamePhase> _phases = new Dictionary<Type, IGamePhase>();
 
     public void ChangeState(IGamePhase newPhase) {
         if (currentPhase != null) {
+            currentPhase.OnFinished = () => {
+
+                SetNewState(newPhase);
+            };
             currentPhase.Exit();
         }
-
+        else {
+            SetNewState(newPhase);
+        }
+    }
+    private void SetNewState(IGamePhase newPhase) {
         currentPhase = newPhase;
 
         if (currentPhase != null) {
@@ -35,7 +40,4 @@ public class PhaseMachine
         _phases.Add(typeof(T), newPhase);
     }
 
-    /*public void SetDefaultPhase(IGamePhase newPhase) { 
-        currentPhase = newPhase;
-    }*/
 }

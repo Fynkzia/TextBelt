@@ -7,8 +7,11 @@ using UnityEngine.UIElements;
 public class ShowTextAction {
     private UIController _uiController;
     public Action SubscribeOnFinished;
-    public void Show(UIController uiController) { 
+    public ShowTextAction(UIController uiController) {
         _uiController = uiController;
+    }
+
+    public void Show() { 
         _uiController.ShowTextBelt();
         _uiController.textBelt.RegisterCallback<TransitionEndEvent>(MoveText);
     }

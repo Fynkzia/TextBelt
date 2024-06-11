@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UniRx;
@@ -9,11 +10,10 @@ public class QuestionPhase : IGamePhase
 {
     private UIController _uiController;
     private PhaseMachine _phaseMachine;
-    private EventRegistry _eventRegistry;
-    public QuestionPhase(UIController uiController, PhaseMachine phaseMachine, EventRegistry eventRegistry) {
+    public Action OnFinished { get; set; }
+    public QuestionPhase(UIController uiController, PhaseMachine phaseMachine) {
         _uiController = uiController;
         _phaseMachine = phaseMachine;
-        _eventRegistry = eventRegistry;
     }
     public void Enter() {
         _uiController.InitQuestionText();
@@ -24,25 +24,14 @@ public class QuestionPhase : IGamePhase
 
     public void Exit() {
         _uiController.CloseQuestionBox();
-        //_eventRegistry.Dispose();
+        _uiController.SubscribeOnFinished = () => {
+            OnFinished?.Invoke();
+        };
     }
 
 
 
     public IGamePhase GetNextPhase() {
-        /*if (_phaseMachine.IsNextQuestion()) {
-            ChangePhaseAfterTransition(_phaseMachine.questionPhase);
-            _phaseMachine.RestartNewQuestion();
-        }
-        else if (_phaseMachine.IsNextStepText()) {
-            ChangePhaseAfterTransition(_phaseMachine.textMovementPhase);
-            _phaseMachine.RestartNewText();
-        }
-        else {
-            ChangePhaseAfterTransition(_phaseMachine.defaultPhase);
-            Debug.Log("End Of Data");
-        }*/
-
         return _phaseMachine.GetPhase<QuestionPhase>();
     }
 }

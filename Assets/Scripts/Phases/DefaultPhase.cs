@@ -1,25 +1,21 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UIElements;
-using Zenject;
+using System;
 
 public class DefaultPhase : IGamePhase
 {
     private UIController _uiController;
     private PhaseMachine _phaseMachine;
-    private EventRegistry _eventRegistry;
+    public Action OnFinished { get; set; }
 
-    public DefaultPhase(UIController uiController, PhaseMachine phaseMachine, EventRegistry eventRegistry) { 
+    public DefaultPhase(UIController uiController, PhaseMachine phaseMachine) { 
         _uiController = uiController;
         _phaseMachine = phaseMachine;  
-        _eventRegistry = eventRegistry;
     }
     public void Enter() {
         _uiController.animations.enabled = true;
     }
     public void Exit() {
         _uiController.animations.enabled = false;
+        OnFinished?.Invoke();
     }
 
     public IGamePhase GetNextPhase() {

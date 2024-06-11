@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -21,6 +22,7 @@ public class UIController : MonoBehaviour
     [Inject] private DataService dataService;
     private int _duration;
     private EventRegistry m_EventRegistry = new EventRegistry();
+    public Action SubscribeOnFinished;
     private void OnEnable() {
         GetAllComponents();
         animations = GetComponent<Animations>();
@@ -68,13 +70,13 @@ public class UIController : MonoBehaviour
         btn.style.backgroundColor = Color.green;
         Debug.Log("right");
         progress.MoveCaterpillar();
-        //Next();//event for gm??
+        gameManager.Next();
     }
     public void ClickAnswerWrong(ClickEvent e) {
         Button btn = e.currentTarget as Button;
         btn.style.backgroundColor = Color.red;
         Debug.Log("wrong");
-        progress.DeleteFruit();//event for gm??
+        progress.DeleteFruit();
     }
     public void ShowTextBelt() {
         overlay.style.overflow = Overflow.Visible;
@@ -98,6 +100,7 @@ public class UIController : MonoBehaviour
 
     public void InitAnswerBox() {
         answerBox.Clear();
+        m_EventRegistry.Dispose();
         InitAnswerButtons();
     }
     public void ShowQuestionBox() {
@@ -116,6 +119,7 @@ public class UIController : MonoBehaviour
     private void HideQuestionBox(TransitionEndEvent evt) {
         question.style.display = DisplayStyle.None;
         answerBox.style.display = DisplayStyle.None;
+        SubscribeOnFinished?.Invoke();
         question.UnregisterCallback<TransitionEndEvent>(HideQuestionBox);
     }
 

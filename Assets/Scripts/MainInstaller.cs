@@ -12,7 +12,6 @@ public class MainInstaller : MonoInstaller
         Container.Bind<UIController>().FromComponentInNewPrefab(main).AsSingle().NonLazy();
 
         Container.Bind<PhaseMachine>().AsSingle();
-        Container.Bind<EventRegistry>().AsSingle();
         Container.Bind<ShowTextAction>().AsSingle();
         Container.Bind<DefaultPhase>().AsSingle();
         Container.Bind<TextMovementPhase>().AsSingle();
