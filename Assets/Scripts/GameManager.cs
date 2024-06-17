@@ -1,3 +1,4 @@
+using GoogleImporter;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,8 +6,6 @@ using Zenject;
 
 public class GameManager : MonoBehaviour
 {
-    public int textSpeed;
-
     [Inject] private DataService dataService;
     [Inject] private DiContainer _container;
     [Inject] private PhaseMachine _phaseMachine;
@@ -20,7 +19,7 @@ public class GameManager : MonoBehaviour
     }
 
     private void Start() {
-        PhaseMachineInit();       
+        PhaseMachineInit();
     }
 
     private void PhaseMachineInit() {
