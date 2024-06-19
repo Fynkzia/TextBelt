@@ -13,20 +13,19 @@ public class ConfigsProvider : MonoBehaviour
     private VisualElement root;
     private MainSettings mainSettings;
 
-    private string fileDataPath = "/MainData.json";
+    private string fileDataPath = "MainData";
 
     void Start()
     {
         root = GetComponent<UIDocument>().rootVisualElement;
-        fileDataPath = Application.persistentDataPath + fileDataPath;
         mainSettings = LoadSettings().Main[0];
         SetConfigs();
     }
 
     public GameSettings LoadSettings() {
-        var jsonLoaded = File.ReadAllText(fileDataPath);
-        var gameSettings = !string.IsNullOrEmpty(jsonLoaded)
-           ? JsonUtility.FromJson<GameSettings>(jsonLoaded)
+        var jsonLoaded = Resources.Load<TextAsset>(fileDataPath);
+        var gameSettings = !string.IsNullOrEmpty(jsonLoaded.text)
+           ? JsonUtility.FromJson<GameSettings>(jsonLoaded.text)
            : new GameSettings();
         return gameSettings;
     }

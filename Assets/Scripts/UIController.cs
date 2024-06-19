@@ -32,6 +32,9 @@ public class UIController : MonoBehaviour
     private EventRegistry m_EventRegistry = new EventRegistry();
     public Action SubscribeOnFinished;
     public Action OnTextMoveFinished;
+    public Action OnAnswerButtonClick;
+
+    private Dictionary<Button, bool> _answerButtons = new Dictionary<Button, bool>();
     private void OnEnable() {
         GetAllComponents();
         animations = GetComponent<Animations>();
@@ -69,26 +72,30 @@ public class UIController : MonoBehaviour
             answerBtn.style.width = answerBlockWidth;
             answerBtn.text = answers[i].text;
             answerBox.Add(answerBtn);
-            if (answers[i].isRight) {
-                m_EventRegistry.RegisterCallback<ClickEvent>(answerBtn, ClickAnswerRight);
-            }
-            else {
-                m_EventRegistry.RegisterCallback<ClickEvent>(answerBtn, ClickAnswerWrong);
-            }
+            _answerButtons.Add(answerBtn, answers[i].isRight);
+
+            m_EventRegistry.RegisterCallback<ClickEvent>(answerBtn, ClickAnswer);
         }
     }
-    public void ClickAnswerRight(ClickEvent e) {
-        Button btn = e.currentTarget as Button;
+    public void ClickAnswerRight(Button btn) {
         btn.style.backgroundColor = Color.green;
         Debug.Log("right");
         progress.MoveCaterpillar();
-        gameManager.Next();
+        OnAnswerButtonClick?.Invoke();
     }
-    public void ClickAnswerWrong(ClickEvent e) {
-        Button btn = e.currentTarget as Button;
+    public void ClickAnswerWrong(Button btn) {
         btn.style.backgroundColor = Color.red;
         Debug.Log("wrong");
         progress.DeleteFruit();
+    }
+
+    public void ClickAnswer(ClickEvent e) {
+        Button btn = e.currentTarget as Button;
+        if (_answerButtons[btn]) {
+            ClickAnswerRight(btn);
+        } else {
+            ClickAnswerWrong(btn);
+        }
     }
     public void ShowTextBelt() {
         overlay.style.overflow = Overflow.Visible;
@@ -139,7 +146,6 @@ public class UIController : MonoBehaviour
     private void HideQuestionBox(TransitionEndEvent evt) {
         question.style.display = DisplayStyle.None;
         answerBox.style.display = DisplayStyle.None;
-        SubscribeOnFinished?.Invoke();
         question.UnregisterCallback<TransitionEndEvent>(HideQuestionBox);
     }
 

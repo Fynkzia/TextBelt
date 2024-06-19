@@ -6,7 +6,6 @@ public class TextMovementPhase : IGamePhase {
     private UIController _uiController;
     private PhaseMachine _phaseMachine;
     private ShowTextAction _showTextAction;
-    public Action OnFinished { get; set; }
 
     public TextMovementPhase(UIController uiController, PhaseMachine phaseMachine, ShowTextAction showTextAction) {
         _uiController = uiController;
@@ -28,11 +27,11 @@ public class TextMovementPhase : IGamePhase {
     }
 
     public void Exit() {
-        OnFinished?.Invoke();
+
         _uiController.speedUp.UnregisterCallback<MouseDownEvent>(_uiController.AddSpeed);
         _uiController.speedUp.UnregisterCallback<MouseUpEvent>(_uiController.RemoveSpeed);
     }
-
+    public void MainButtonClick() { }
     public IGamePhase GetNextPhase() {
         return _phaseMachine.GetPhase<QuestionPhase>();
     }

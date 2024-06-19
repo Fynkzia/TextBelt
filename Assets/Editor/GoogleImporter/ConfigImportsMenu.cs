@@ -9,7 +9,7 @@ namespace GoogleImporter {
         private const string SHEETS_NAME = "MainSettings";
         private const string CREDENTIALS_PATH = "textbelt-423208-c4bb244fe225.json";
         private const string KEY = "MainSettings";
-        private const string FILE_DATA_PATH = "/MainData.json";
+        private const string FILE_DATA_PATH = "/Resources/MainData.json";
 
         [MenuItem("Configs/Import Settings")]
         private static async void LoadMainSettings() {
@@ -19,16 +19,16 @@ namespace GoogleImporter {
             await sheetsImporter.DownloadAndParseSheet(SHEETS_NAME, mainParser);
 
             var jsonForSaving = JsonUtility.ToJson(gameSettings);
-            string fileDataPath = Application.streamingAssetsPath + FILE_DATA_PATH;
+            string fileDataPath = Application.dataPath + FILE_DATA_PATH;
             File.WriteAllText(fileDataPath, jsonForSaving);
         }
 
         public static GameSettings LoadSettings() {
-            string fileDataPath = Application.persistentDataPath + FILE_DATA_PATH;
-            if (File.Exists(fileDataPath)) { 
-                var jsonLoaded = File.ReadAllText(fileDataPath);
-                var gameSettings = !string.IsNullOrEmpty(jsonLoaded)
-                   ? JsonUtility.FromJson<GameSettings>(jsonLoaded)
+            string fileDataPath = Application.dataPath + FILE_DATA_PATH;
+            if (File.Exists(fileDataPath)) {
+                var jsonLoaded = Resources.Load<TextAsset>(fileDataPath);
+                var gameSettings = !string.IsNullOrEmpty(jsonLoaded.text)
+                   ? JsonUtility.FromJson<GameSettings>(jsonLoaded.text)
                    : new GameSettings();
                 return gameSettings;
             }

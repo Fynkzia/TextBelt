@@ -5,8 +5,9 @@ using UnityEngine;
 using UnityEngine.UIElements;
 
 public interface IGamePhase
-{   Action OnFinished { get; set; }
+{   
     public void Enter();
     public void Exit();
+    public void MainButtonClick();
     IGamePhase GetNextPhase();
 }
