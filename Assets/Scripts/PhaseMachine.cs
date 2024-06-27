@@ -10,17 +10,8 @@ public class PhaseMachine
 
     public void ChangeState(IGamePhase newPhase) {
         if (currentPhase != null) {
-            currentPhase.OnFinished = () => {
-
-                SetNewState(newPhase);
-            };
             currentPhase.Exit();
         }
-        else {
-            SetNewState(newPhase);
-        }
-    }
-    private void SetNewState(IGamePhase newPhase) {
         currentPhase = newPhase;
 
         if (currentPhase != null) {

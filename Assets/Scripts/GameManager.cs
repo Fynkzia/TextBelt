@@ -1,3 +1,4 @@
+using GoogleImporter;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,8 +6,6 @@ using Zenject;
 
 public class GameManager : MonoBehaviour
 {
-    public int textSpeed;
-
     [Inject] private DataService dataService;
     [Inject] private DiContainer _container;
     [Inject] private PhaseMachine _phaseMachine;
@@ -20,7 +19,7 @@ public class GameManager : MonoBehaviour
     }
 
     private void Start() {
-        PhaseMachineInit();       
+        PhaseMachineInit();
     }
 
     private void PhaseMachineInit() {
@@ -29,39 +28,25 @@ public class GameManager : MonoBehaviour
 
         var defaultPhase = new DefaultPhase(uiController, _phaseMachine);
         var textMovementPhase = new TextMovementPhase(uiController, _phaseMachine, showTextAction);
-        var questionPhase = new QuestionPhase(uiController, _phaseMachine);
+        var questionPhase = new QuestionPhase(uiController, _phaseMachine, this);
         _phaseMachine.AddPhase<DefaultPhase>(defaultPhase);
         _phaseMachine.AddPhase<TextMovementPhase>(textMovementPhase);
         _phaseMachine.AddPhase<QuestionPhase>(questionPhase);
 
         _phaseMachine.ChangeState(_phaseMachine.GetPhase<DefaultPhase>());
+        uiController.OnAnswerButtonClick += () => _phaseMachine.MoveToNextState();
     }
 
     public void MainButtonClick() {
-        if (_phaseMachine.currentPhase != _phaseMachine.GetPhase<TextMovementPhase>()) { 
-            _phaseMachine.ChangeState(_phaseMachine.GetPhase<TextMovementPhase>());
-        }
+        _phaseMachine.currentPhase.MainButtonClick();
     }
 
-    public void Next() {
-        if (IsNextQuestion()) {
-            RestartNewQuestion();
-            _phaseMachine.ChangeState(_phaseMachine.GetPhase<QuestionPhase>());
-        } else if (IsNextStepText()) {
-            RestartNewText();
-            _phaseMachine.ChangeState(_phaseMachine.GetPhase<TextMovementPhase>());
-        } else {
-            _phaseMachine.ChangeState(_phaseMachine.GetPhase<DefaultPhase>());
-            Debug.Log("End Of Data");
-}
-    }
-
-    private void RestartNewText() {
+    public void RestartNewText() {
         _currentStepIndex++;
         _currentQuestionIndex = 0;
     }
 
-    private void RestartNewQuestion() {
+    public void RestartNewQuestion() {
         _currentQuestionIndex++;
     }
 

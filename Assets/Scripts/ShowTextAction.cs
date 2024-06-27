@@ -17,13 +17,12 @@ public class ShowTextAction {
     }
 
     private void MoveText(TransitionEndEvent evt) {
-        _uiController.MoveText();
         _uiController.textBelt.UnregisterCallback<TransitionEndEvent>(MoveText);
-        _uiController.actualText.RegisterCallback<TransitionEndEvent>(CloseTransition);
+        _uiController.StartCoroutine(_uiController.MoveText());
+        _uiController.OnTextMoveFinished = () => CloseTransition();
     }
 
-    private void CloseTransition(TransitionEndEvent evt) {
-        _uiController.actualText.UnregisterCallback<TransitionEndEvent>(CloseTransition);
+    private void CloseTransition() {
         _uiController.CloseTextBelt();
 
         _uiController.textBelt.RegisterCallback<TransitionEndEvent>(EventFinished);
@@ -31,6 +30,7 @@ public class ShowTextAction {
 
     public void UnsubscribeAll() {
         SubscribeOnFinished = null;
+        _uiController.OnTextMoveFinished = null;
         _uiController.textBelt.UnregisterCallback<TransitionEndEvent>(EventFinished);
     }
 

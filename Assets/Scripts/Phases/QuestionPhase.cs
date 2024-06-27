@@ -10,10 +10,11 @@ public class QuestionPhase : IGamePhase
 {
     private UIController _uiController;
     private PhaseMachine _phaseMachine;
-    public Action OnFinished { get; set; }
-    public QuestionPhase(UIController uiController, PhaseMachine phaseMachine) {
+    private GameManager _gameManager;
+    public QuestionPhase(UIController uiController, PhaseMachine phaseMachine, GameManager gameManager) {
         _uiController = uiController;
         _phaseMachine = phaseMachine;
+        _gameManager = gameManager;
     }
     public void Enter() {
         _uiController.InitQuestionText();
@@ -24,14 +25,24 @@ public class QuestionPhase : IGamePhase
 
     public void Exit() {
         _uiController.CloseQuestionBox();
-        _uiController.SubscribeOnFinished = () => {
-            OnFinished?.Invoke();
-        };
     }
 
-
+    public void MainButtonClick() {
+        _phaseMachine.ChangeState(_phaseMachine.GetPhase<TextMovementPhase>());
+    }
 
     public IGamePhase GetNextPhase() {
-        return _phaseMachine.GetPhase<QuestionPhase>();
+        if (_gameManager.IsNextQuestion()) {
+            _gameManager.RestartNewQuestion();
+            return _phaseMachine.GetPhase<QuestionPhase>();
+        }
+        else if (_gameManager.IsNextStepText()) {
+            _gameManager.RestartNewText();
+            return _phaseMachine.GetPhase<TextMovementPhase>();
+        }
+        else {
+            Debug.Log("End Of Data");
+            return _phaseMachine.GetPhase<DefaultPhase>();
+        }
     }
 }

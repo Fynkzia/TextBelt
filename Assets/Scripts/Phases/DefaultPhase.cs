@@ -4,7 +4,6 @@ public class DefaultPhase : IGamePhase
 {
     private UIController _uiController;
     private PhaseMachine _phaseMachine;
-    public Action OnFinished { get; set; }
 
     public DefaultPhase(UIController uiController, PhaseMachine phaseMachine) { 
         _uiController = uiController;
@@ -15,7 +14,10 @@ public class DefaultPhase : IGamePhase
     }
     public void Exit() {
         _uiController.animations.enabled = false;
-        OnFinished?.Invoke();
+    }
+
+    public void MainButtonClick() { 
+        _phaseMachine.MoveToNextState();
     }
 
     public IGamePhase GetNextPhase() {
