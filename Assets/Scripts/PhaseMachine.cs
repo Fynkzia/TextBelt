@@ -1,26 +1,34 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PhaseMachine : MonoBehaviour
+public class PhaseMachine
 {
-    GamePhase currentPhase;
+    public IGamePhase currentPhase { get; private set; }
+    private Dictionary<Type,IGamePhase> _phases = new Dictionary<Type, IGamePhase>();
 
-    private void Start() {
-        currentPhase = GetInitialPhase();
+    public void ChangeState(IGamePhase newPhase) {
+        if (currentPhase != null) {
+            currentPhase.Exit();
+        }
+        currentPhase = newPhase;
+
         if (currentPhase != null) {
             currentPhase.Enter();
         }
     }
 
-    public void ChangePhase(GamePhase newPhase) {
-        currentPhase.Exit();
-
-        currentPhase = newPhase;
-        currentPhase.Enter();
+    public void MoveToNextState() {
+        if (currentPhase != null) {
+            ChangeState(currentPhase.GetNextPhase());
+        }
+    }
+    public IGamePhase GetPhase<T>() { 
+        return _phases[typeof(T)];
+    }
+    public void AddPhase<T>(IGamePhase newPhase) { 
+        _phases.Add(typeof(T), newPhase);
     }
 
-    protected virtual GamePhase GetInitialPhase() {
-        return null;
-    }
 }

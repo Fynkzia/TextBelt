@@ -1,25 +1,26 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UIElements;
+using System;
 
-public class DefaultPhase : GamePhase
+public class DefaultPhase : IGamePhase
 {
-    private GamePhaseMachine _phaseMachine;
-    public DefaultPhase(GamePhaseMachine phaseMachine) : base("DefaultPhase", phaseMachine) {
-        _phaseMachine = phaseMachine;
+    private UIController _uiController;
+    private PhaseMachine _phaseMachine;
+
+    public DefaultPhase(UIController uiController, PhaseMachine phaseMachine) { 
+        _uiController = uiController;
+        _phaseMachine = phaseMachine;  
+    }
+    public void Enter() {
+        _uiController.animations.enabled = true;
+    }
+    public void Exit() {
+        _uiController.animations.enabled = false;
     }
 
-    public override void Enter() {
-        _phaseMachine.animations.enabled = true;
-        _phaseMachine.playButton.RegisterCallback<ClickEvent>(MainButtonClick);
+    public void MainButtonClick() { 
+        _phaseMachine.MoveToNextState();
     }
 
-    private void MainButtonClick(ClickEvent e) {
-        _phaseMachine.ChangePhase(_phaseMachine.textMovementPhase);
-    }
-    public override void Exit() {
-        _phaseMachine.animations.enabled = false;
-        _phaseMachine.playButton.UnregisterCallback<ClickEvent>(MainButtonClick);
+    public IGamePhase GetNextPhase() {
+        return _phaseMachine.GetPhase<TextMovementPhase>();
     }
 }

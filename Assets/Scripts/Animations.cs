@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public class Animations : MonoBehaviour
-{
+public class Animations : MonoBehaviour {
     private Button playButton;
     private EventRegistry m_EventRegistry = new EventRegistry();
     private void OnEnable() {

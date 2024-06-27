@@ -3,7 +3,7 @@ using System;
 namespace GoogleImporter {
     [Serializable]
     public class MainSettings {
-        public string NumberOfFruits;
+        public int NumberOfFruits;
         public int SpeedOfStateChange;
         public int TextSpeed;
         public int TextSize;
