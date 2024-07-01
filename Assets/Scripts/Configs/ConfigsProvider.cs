@@ -9,15 +9,14 @@ using Zenject;
 
 public class ConfigsProvider : MonoBehaviour
 {
+    [SerializeField] private GameObject fruitPf;
     [Inject] private UIController uiController;
-    private VisualElement root;
     private MainSettings mainSettings;
 
     private string fileDataPath = "MainData";
 
     void Start()
     {
-        root = GetComponent<UIDocument>().rootVisualElement;
         mainSettings = LoadSettings().Main[0];
         SetConfigs();
     }
@@ -33,21 +32,18 @@ public class ConfigsProvider : MonoBehaviour
         SetFruits(mainSettings.NumberOfFruits);
         uiController.speedOfStateChange = mainSettings.SpeedOfStateChange;
         uiController.textSpeed = mainSettings.TextSpeed;
-        root.Q<Label>("ActualText").style.fontSize = mainSettings.TextSize;
+        uiController.actualText.fontSize = mainSettings.TextSize;
         //root.Q<Label>("ActualText").style.unityFont = ???;
-        root.Q<Label>("ActualText").style.wordSpacing = mainSettings.WordSpacing;
-        root.Q<VisualElement>("Question").style.height = mainSettings.QuestionBlockHeight;
-        root.Q<Label>("QuestionLabel").style.fontSize = mainSettings.QuestionBlockTextSize;
-        //root.Q<Label>("QuestionLabel").style.unityTextAlign = TextAnchor.MiddleCenter;
+        uiController.actualText.wordSpacing = mainSettings.WordSpacing;
+        //uiController.question.rectTransform.sizeDelta = new Vector2(250,mainSettings.QuestionBlockHeight);
+        uiController.questionLabel.fontSize = mainSettings.QuestionBlockTextSize;
+        uiController.questionLabel.alignment = TMPro.TextAlignmentOptions.Midline;
         uiController.answerBlockWidth = mainSettings.AnswerBlockWidth;
     }
 
     private void SetFruits(int numberOfFruits) { 
-        var fruitsBox = root.Q<VisualElement>("FruitsBox");
         for (int i = 0; i < numberOfFruits; i++) {
-            var fruit = new VisualElement();
-            fruit.AddToClassList("fruit");
-            fruitsBox.Add(fruit);
+            Instantiate(fruitPf, uiController.fruitsBox.transform);
         }
     }
 }

@@ -1,33 +1,29 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public class Animations : MonoBehaviour {
-    private Button playButton;
-    private EventRegistry m_EventRegistry = new EventRegistry();
-    private void OnEnable() {
-        var root = GetComponent<UIDocument>().rootVisualElement;
-        playButton = root.Q<Button>("PlayButton");
-    }
+    [SerializeField] private float scale;
+    [SerializeField] private float expandDuration;
+    private Vector3 breatheIn;
+    private Vector3 breatheOut;
+    private bool breathingIn = false;
+    private float currentTime = 0f;
 
     private void Start() {
-        StartCoroutine(AnimateButton());
+        breatheIn = transform.localScale;
+        breatheOut = new Vector3(scale, scale, 1);
     }
+    private void Update() {
+        Vector3 targetScale = breathingIn ? breatheIn : breatheOut;
+        Vector3 startScale = breathingIn ? breatheOut : breatheIn;
 
-    private IEnumerator AnimateButton() {
-        m_EventRegistry.RegisterCallback<TransitionEndEvent>
-        (
-            playButton,
-            evt => playButton.ToggleInClassList("playButton_anim")
-        );
-        yield return new WaitForEndOfFrame();
-        playButton.ToggleInClassList("playButton_anim");
-    }
+        currentTime += Time.deltaTime;
+        float lerpFactor = currentTime / expandDuration;
 
+        transform.localScale = Vector3.Lerp(startScale,targetScale, lerpFactor);
 
-    private void OnDisable() {
-        playButton.RemoveFromClassList("playButton_anim");
-        m_EventRegistry.Dispose();
+        if (lerpFactor >= 1.0f) {
+            breathingIn = !breathingIn;
+            currentTime = 0f;
+        }
     }
 }

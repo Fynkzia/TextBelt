@@ -1,8 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UIElements;
 
 public class ShowTextAction {
     private UIController _uiController;
@@ -13,28 +9,26 @@ public class ShowTextAction {
 
     public void Show() { 
         _uiController.ShowTextBelt();
-        _uiController.textBelt.RegisterCallback<TransitionEndEvent>(MoveText);
+        _uiController.OnTextBeltAnimFinished = () => MoveText();
     }
 
-    private void MoveText(TransitionEndEvent evt) {
-        _uiController.textBelt.UnregisterCallback<TransitionEndEvent>(MoveText);
+    private void MoveText() {
         _uiController.StartCoroutine(_uiController.MoveText());
         _uiController.OnTextMoveFinished = () => CloseTransition();
     }
 
     private void CloseTransition() {
+        _uiController.OnTextBeltAnimFinished = () => EventFinished();
         _uiController.CloseTextBelt();
-
-        _uiController.textBelt.RegisterCallback<TransitionEndEvent>(EventFinished);
     }
 
     public void UnsubscribeAll() {
         SubscribeOnFinished = null;
         _uiController.OnTextMoveFinished = null;
-        _uiController.textBelt.UnregisterCallback<TransitionEndEvent>(EventFinished);
+        _uiController.OnTextBeltAnimFinished = null;
     }
 
-    private void EventFinished(TransitionEndEvent evt) {
+    private void EventFinished() {
         SubscribeOnFinished?.Invoke();
     }
 }

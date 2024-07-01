@@ -1,25 +1,29 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
-using UnityEngine.UIElements;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 using Zenject;
 
 public class UIController : MonoBehaviour
 {
+    [SerializeField] private Button answerButtonPf;
+
+    public GameObject fruitsBox;
     public Button playButton;
-    public VisualElement textBelt;
-    public VisualElement overlay;
-    public Label actualText;
-    public VisualElement question;
-    public Label questionLabel;
-    public GroupBox answerBox;
+    public Image textBelt;
+    public TextMeshProUGUI actualText;
+    public GameObject question;
+    public TextMeshProUGUI questionLabel;
+    public GameObject answerBox;
 
-    public VisualElement speedUp;
+    public GameObject speedUp;
 
-    public int textSpeed;
-    public int speedOfStateChange;
-    public int answerBlockWidth;
+    [HideInInspector] public int textSpeed;
+    [HideInInspector] public int speedOfStateChange;
+    [HideInInspector] public int answerBlockWidth;
 
     [HideInInspector] public Progress progress;
     [HideInInspector] public Animations animations;
@@ -27,37 +31,25 @@ public class UIController : MonoBehaviour
     [Inject] private GameManager gameManager;
     [Inject] private DataService dataService;
 
-    public int _duration;
-    private int speedTextBoost = 2;
+    [HideInInspector]public int _duration;
+    private float textBeltMixSize = 30;
+    private float textBeltMaxSize = 100;
     private EventRegistry m_EventRegistry = new EventRegistry();
     public Action SubscribeOnFinished;
     public Action OnTextMoveFinished;
+    public Action OnTextBeltAnimFinished;
     public Action OnAnswerButtonClick;
 
     private Dictionary<Button, bool> _answerButtons = new Dictionary<Button, bool>();
     private void OnEnable() {
-        GetAllComponents();
-        animations = GetComponent<Animations>();
+        animations = playButton.GetComponent<Animations>();
         progress = GetComponent<Progress>();
        
     }
     private void Start() {
-        playButton.RegisterCallback<ClickEvent>(e => gameManager.MainButtonClick());
+        playButton.onClick.AddListener(gameManager.MainButtonClick);
     }
-    private void GetAllComponents() {
-        var root = GetComponent<UIDocument>().rootVisualElement;
-        playButton = root.Q<Button>("PlayButton");
 
-        textBelt = root.Q<VisualElement>("TextBelt");
-        overlay = root.Q<VisualElement>("Overlay");
-        actualText = root.Q<Label>("ActualText");
-
-        question = root.Q<VisualElement>("Question");
-        questionLabel = root.Q<Label>("QuestionLabel");
-        answerBox = root.Q<GroupBox>("AnswerBox");
-
-        speedUp = root.Q<VisualElement>("SpeedUp");
-    }
     public void InitCurrentStepText() {
         int currentStepIndex = gameManager._currentStepIndex;
         _duration = dataService.GetCurrentStepText(currentStepIndex).Length / textSpeed;
@@ -67,30 +59,28 @@ public class UIController : MonoBehaviour
     public void InitAnswerButtons() {
         List<TextBlockData.Answer> answers = dataService.GetAnswers(gameManager._currentStepIndex, gameManager._currentQuestionIndex);
         for (int i = 0; i < answers.Count; i++) {
-            var answerBtn = new Button();
-            answerBtn.AddToClassList("answerBtn");
-            answerBtn.style.width = answerBlockWidth;
-            answerBtn.text = answers[i].text;
-            answerBox.Add(answerBtn);
+            var answerBtn = Instantiate(answerButtonPf,answerBox.transform);
+            //answerBtn.style.width = answerBlockWidth; ???
+            answerBtn.GetComponentInChildren<TextMeshProUGUI>().text = answers[i].text;
+            //answerBox.Add(answerBtn);
             _answerButtons.Add(answerBtn, answers[i].isRight);
 
-            m_EventRegistry.RegisterCallback<ClickEvent>(answerBtn, ClickAnswer);
+            m_EventRegistry.RegisterClick(answerBtn, () => ClickAnswer(answerBtn));
         }
     }
     public void ClickAnswerRight(Button btn) {
-        btn.style.backgroundColor = Color.green;
+        btn.GetComponent<Image>().color = Color.green;
         Debug.Log("right");
         progress.MoveCaterpillar();
         OnAnswerButtonClick?.Invoke();
     }
     public void ClickAnswerWrong(Button btn) {
-        btn.style.backgroundColor = Color.red;
+        btn.GetComponent<Image>().color = Color.red;
         Debug.Log("wrong");
         progress.DeleteFruit();
     }
 
-    public void ClickAnswer(ClickEvent e) {
-        Button btn = e.currentTarget as Button;
+    public void ClickAnswer(Button btn) {
         if (_answerButtons[btn]) {
             ClickAnswerRight(btn);
         } else {
@@ -98,16 +88,15 @@ public class UIController : MonoBehaviour
         }
     }
     public void ShowTextBelt() {
-        overlay.style.overflow = Overflow.Visible;
-        textBelt.AddToClassList("textbelt__open");
-        speedUp.style.display = DisplayStyle.Flex;
+        StartCoroutine(TextBeltAnim(true));
+        speedUp.SetActive(true);
     }
 
     public IEnumerator MoveText() {
         float elapsedTime = 0;
 
         while (elapsedTime < 1f) {
-            actualText.style.translate = new Translate(Length.Percent(Mathf.Lerp(0, -100, elapsedTime)), 0);
+            actualText.rectTransform.localPosition = new Vector3(Mathf.Lerp(Screen.width/2, -Screen.width/2, elapsedTime), 0,0);
             elapsedTime += (1f / _duration) * Time.deltaTime;
             yield return null;
         }
@@ -115,49 +104,54 @@ public class UIController : MonoBehaviour
     }
 
     public void CloseTextBelt() {
-        actualText.style.transitionDuration = new List<TimeValue>() { new TimeValue(speedOfStateChange, TimeUnit.Second) };
-        textBelt.RemoveFromClassList("textbelt__open");
-        actualText.style.translate = new Translate(0, 0);
-        overlay.style.overflow = Overflow.Hidden;
-        speedUp.style.display = DisplayStyle.None;
+        StartCoroutine(TextBeltAnim(false));
+        actualText.rectTransform.localPosition = new Vector3(Screen.width/2, 0,0);
+        speedUp.SetActive(false);
     }
+    public IEnumerator TextBeltAnim(bool isExpand) {
+        float elapsedTime = 0;
+        float currentSizeY = isExpand ? textBeltMaxSize : textBeltMixSize;
+
+        while (elapsedTime < 1f) {
+            textBelt.rectTransform.sizeDelta = new Vector2(0,Mathf.Lerp(textBelt.rectTransform.sizeDelta.y, currentSizeY, elapsedTime));
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+        OnTextBeltAnimFinished?.Invoke();
+    }
+
     public void InitQuestionText() {
         questionLabel.text = dataService.GetCurrentQuestionText(gameManager._currentStepIndex,gameManager._currentQuestionIndex);
     }
 
     public void InitAnswerBox() {
-        answerBox.Clear();
+        foreach (Transform child in answerBox.transform) {
+            Destroy(child.gameObject);
+        }
         m_EventRegistry.Dispose();
         InitAnswerButtons();
     }
     public void ShowQuestionBox() {
-        question.style.display = DisplayStyle.Flex;
-        answerBox.style.display = DisplayStyle.Flex;
-        question.RemoveFromClassList("question_small");
-        answerBox.RemoveFromClassList("question_small");
+        question.SetActive(true);
+        answerBox.SetActive(true);
+        //question.RemoveFromClassList("question_small");
+        //answerBox.RemoveFromClassList("question_small");
     }
 
     public void CloseQuestionBox() {
-        question.AddToClassList("question_small");
-        answerBox.AddToClassList("question_small");
-        question.RegisterCallback<TransitionEndEvent>(HideQuestionBox);
+        //question.AddToClassList("question_small");
+        //answerBox.AddToClassList("question_small");
+        //question.RegisterCallback<TransitionEndEvent>(HideQuestionBox);
+        HideQuestionBox();
     }
 
-    private void HideQuestionBox(TransitionEndEvent evt) {
-        question.style.display = DisplayStyle.None;
-        answerBox.style.display = DisplayStyle.None;
-        question.UnregisterCallback<TransitionEndEvent>(HideQuestionBox);
+    private void HideQuestionBox() {
+        question.SetActive(false);
+        answerBox.SetActive(false);
+        //question.UnregisterCallback<TransitionEndEvent>(HideQuestionBox);
     }
 
     private void OnDestroy() {
-        playButton.UnregisterCallback<ClickEvent>(e => gameManager.MainButtonClick());
-    }
-
-    public void AddSpeed(MouseDownEvent evt) {
-        _duration /= speedTextBoost;
-    }
-
-    public void RemoveSpeed(MouseUpEvent evt) {
-        _duration *= speedTextBoost;
+        playButton.onClick.RemoveListener(gameManager.MainButtonClick);
     }
 }

@@ -1,33 +1,29 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
+using UnityEngine.UI;
 using Zenject;
 
 public class Progress : MonoBehaviour
 {
     [Inject] private DataService dataService;
-    private GroupBox fruitsBox;
-    private VisualElement progressBarValue;
+    [Inject] private UIController uiController;
+    [SerializeField]private Image progressBarValue;
 
     private float percentPerQuestion;
     private float _currentProgressBarValue = 0;
     private void OnEnable() {
-        var root = GetComponent<UIDocument>().rootVisualElement;
-        fruitsBox = root.Q<GroupBox>("FruitsBox");
-
-        progressBarValue = root.Q<VisualElement>("ProgressBarValue");
         percentPerQuestion = 100 / dataService.GetAllQuestionsCount();
     }
 
     public void MoveCaterpillar() {
         _currentProgressBarValue += percentPerQuestion;
-        progressBarValue.style.width = new Length(_currentProgressBarValue, LengthUnit.Percent);
+        progressBarValue.fillAmount = _currentProgressBarValue/100;
     }
 
     public void DeleteFruit() {
-        if (fruitsBox.childCount > 0) {
-            fruitsBox.RemoveAt(fruitsBox.childCount - 1);
+        if (uiController.fruitsBox.transform.childCount > 0) {
+            Destroy(uiController.fruitsBox.transform.GetChild(0).gameObject);
         }
         else {
             Debug.Log("Try to restart");
