@@ -1,71 +1,48 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Zenject;
 
-public class QuestionPhase : GamePhase
+public class QuestionPhase : IGamePhase
 {
-
-    private GamePhaseMachine _phaseMachine;
-   
-    private EventRegistry m_EventRegistry = new EventRegistry();
-    public QuestionPhase(GamePhaseMachine phaseMachine) : base("QuestionPhase", phaseMachine) {
+    private UIController _uiController;
+    private PhaseMachine _phaseMachine;
+    private GameManager _gameManager;
+    public QuestionPhase(UIController uiController, PhaseMachine phaseMachine, GameManager gameManager) {
+        _uiController = uiController;
         _phaseMachine = phaseMachine;
+        _gameManager = gameManager;
+    }
+    public void Enter() {
+        _uiController.InitQuestionText();
+        _uiController.InitAnswerBox();
+        _uiController.ShowQuestionBox();
+        
     }
 
-    public override void Enter() {
-        _phaseMachine.playButton.RegisterCallback<ClickEvent>(MainButtonClick);
-        _phaseMachine.question.style.display = DisplayStyle.Flex;
-        _phaseMachine.answerBox.style.display = DisplayStyle.Flex;
-        _phaseMachine.question.RemoveFromClassList("question_small");
-        _phaseMachine.answerBox.RemoveFromClassList("question_small");
-    }
-    private void MainButtonClick(ClickEvent e) {
-        ChangePhaseAfterTransition(_phaseMachine.textMovementPhase);
+    public void Exit() {
+        _uiController.CloseQuestionBox();
     }
 
-    private void ChangePhaseAfterTransition(GamePhase phase) {
-        _phaseMachine.question.AddToClassList("question_small");
-        _phaseMachine.answerBox.AddToClassList("question_small");
-        m_EventRegistry.RegisterCallback<TransitionEndEvent>
-        (_phaseMachine.question, evt => {
-            _phaseMachine.ChangePhase(phase);
-        });
-    }
-    public override void Exit() {
-        _phaseMachine.question.style.display = DisplayStyle.None;
-        _phaseMachine.answerBox.style.display = DisplayStyle.None;
-        _phaseMachine.playButton.UnregisterCallback<ClickEvent>(MainButtonClick);
-        m_EventRegistry.Dispose();
+    public void MainButtonClick() {
+        _phaseMachine.ChangeState(_phaseMachine.GetPhase<TextMovementPhase>());
     }
 
-    public void ClickAnswerRight(ClickEvent e) {
-        Button btn = e.currentTarget as Button;
-        btn.style.backgroundColor = Color.green;
-        Debug.Log("right");
-        _phaseMachine.progress.MoveCaterpillar();
-        Next();
-    }
-    public void ClickAnswerWrong(ClickEvent e) {
-        Button btn = e.currentTarget as Button;
-        btn.style.backgroundColor = Color.red;
-        Debug.Log("wrong");
-        _phaseMachine.progress.DeleteFruit();
-    }
-
-    private void Next() {
-        if (_phaseMachine.IsNextQuestion()) {
-            ChangePhaseAfterTransition(_phaseMachine.questionPhase);
-            _phaseMachine.RestartNewQuestion();
+    public IGamePhase GetNextPhase() {
+        if (_gameManager.IsNextQuestion()) {
+            _gameManager.RestartNewQuestion();
+            return _phaseMachine.GetPhase<QuestionPhase>();
         }
-        else if (_phaseMachine.IsNextStepText()) {
-            ChangePhaseAfterTransition(_phaseMachine.textMovementPhase);
-            _phaseMachine.RestartNewText();
+        else if (_gameManager.IsNextStepText()) {
+            _gameManager.RestartNewText();
+            return _phaseMachine.GetPhase<TextMovementPhase>();
         }
         else {
-            ChangePhaseAfterTransition(_phaseMachine.defaultPhase);
             Debug.Log("End Of Data");
+            return _phaseMachine.GetPhase<DefaultPhase>();
         }
     }
 }

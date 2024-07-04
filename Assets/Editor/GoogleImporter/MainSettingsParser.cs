@@ -15,7 +15,7 @@ namespace GoogleImporter {
             switch (header) {
                 case "NumberOfFruits":
                     _currentMainSettings = new MainSettings {
-                        NumberOfFruits = token
+                        NumberOfFruits = Convert.ToInt32(token)
                     };
                     _gameSettings.Main.Add(_currentMainSettings);
                     break;
